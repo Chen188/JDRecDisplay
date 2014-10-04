@@ -56,13 +56,17 @@ dsv("data/cftrain.csv")
 
 
 //	初始化表格，并返回tbody
-function initTable(disPlayHeader) {
+function initTable(selector, disPlayHeader) {
     if (!disPlayHeader)
         displayColumns = ["用户ID", "商品ID", "预测评分", "实际评分"];
     else
         displayColumns = disPlayHeader;
 
-	var table = d3.select("#container")
+    if (!selector) {
+        selector = "#container";
+    };
+
+	var table = d3.select(selector)
 		.append("table")
 		.attr("class", "table table-bordered"),
 
@@ -88,6 +92,7 @@ function initTable(disPlayHeader) {
  *  '2': [{sid:1,rate:2},{sid:3,rate:4},...]
  *  ...
  *  }
+ *  @param testData
  */
 function fillBody (tbody, preData, testData) {
     // tbody.remove();
@@ -142,4 +147,29 @@ function fillBody (tbody, preData, testData) {
 		.enter()
 		.append("td")
 			.text(function (d) {return d.value});
+
+        // d3.selectAll('tr')
+        var tds = $('td:last-child');
+        for (var i = tds.length - 1; i >= 0; i--) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
+            btn.setAttribute('data-toggle','modal');
+            btn.setAttribute('data-target', '#myModal');
+            btn.textContent='显示所有';
+            tds[i].appendChild(btn);
+        };
+
+        // $('.showUserDetail').on('click', generateUserData(this));
+        $('.showUserDetail').on('click', function (who){
+            generateUserData(who)
+        });
+}
+
+
+function generateUserData(who) {
+    var par = who.target.parentElement.parentElement;
+    var modal_body = $('.modal-body')[0];
+    var uid = par.firstChild.textContent;
+    var data = PreData[uid];
+    console.log(data);
 }

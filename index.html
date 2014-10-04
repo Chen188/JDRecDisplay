@@ -6,6 +6,8 @@
     <link href="css/bootstrap-theme.min.css" rel="stylesheet">
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <script src="js/d3.js"></script>
+    <script type="text/javascript" src="js/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
     <script src="js/RecDisplay.js"></script>
     <title>推荐结果展示</title>
 </head>
@@ -13,8 +15,34 @@
 <header>
 </header>
 <div id="main">
-	<h1>推荐结果</h1>
-	<div id="container"></div>
+    <h1>推荐结果</h1>
+
+    <div id="container" class="well"></div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    用户推荐详情
+                </h4>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal -->
 </div>
 <div class="page-header">
     <h1>Button</h1>1
