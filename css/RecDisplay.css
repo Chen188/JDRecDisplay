@@ -22,3 +22,7 @@
 .table {
 	background-color: #fff;
 }
+.modal-body {
+	max-height: 490px;
+	overflow-y: scroll;
+}
