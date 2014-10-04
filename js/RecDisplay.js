@@ -8,14 +8,14 @@ dsv("data/test.csv")
         return {uid: +d.uid, rate: +d.rate, sid: +d.sid};
     })
     .get(function (error, rows) {
-    	rows.forEach(function (row) {
-    		var sid_rate = {sid: row.sid, rate: row.rate};
-    		if (!PreData[row['uid']]) {
-    			PreData[row['uid']] = [];
-    		}
-    		PreData[row['uid']].push(sid_rate);
-    	});
-    	console.log("PreData");
+        rows.forEach(function (row) {
+            var sid_rate = {sid: row.sid, rate: row.rate};
+            if (!PreData[row['uid']]) {
+                PreData[row['uid']] = [];
+            }
+            PreData[row['uid']].push(sid_rate);
+        });
+        console.log("PreData");
 //    	console.log(PreData);
     });
 // 读取测试数据
@@ -24,14 +24,14 @@ dsv("data/cftest.csv")
         return {uid: +d.uid, rate: +d.rate, sid: +d.sid};
     })
     .get(function (error, rows) {
-    	rows.forEach(function (row) {
-    		var sid_rate = {sid: row.sid, rate: row.rate};
-    		if (!TestData[row['uid']]) {
+        rows.forEach(function (row) {
+            var sid_rate = {sid: row.sid, rate: row.rate};
+            if (!TestData[row['uid']]) {
                 TestData[row['uid']] = [];
-    		}
-    		TestData[row['uid']].push(sid_rate);
-    	});
-    	console.log("TestData");
+            }
+            TestData[row['uid']].push(sid_rate);
+        });
+        console.log("TestData");
     });
 
 // 读取训练数据
@@ -40,19 +40,18 @@ dsv("data/cftrain.csv")
         return {uid: +d.uid, rate: +d.rate, sid: +d.sid};
     })
     .get(function (error, rows) {
-    	rows.forEach(function (row) {
-    		var sid_rate = {sid: row.sid, rate: row.rate};
-    		if (!TrainData[row['uid']]) {
+        rows.forEach(function (row) {
+            var sid_rate = {sid: row.sid, rate: row.rate};
+            if (!TrainData[row['uid']]) {
                 TrainData[row['uid']] = [];
-    		}
+            }
             TrainData[row['uid']].push(sid_rate);
-    	});
-    	console.log("TrainData");
-		tbody = initTable();
-		console.log("initTable");
-		fillBody(tbody, PreData, TestData);
+        });
+        console.log("TrainData");
+        tbody = initTable();
+        console.log("initTable");
+        fillBody(tbody, PreData, TestData);
     });
-
 
 
 //	初始化表格，并返回tbody
@@ -64,23 +63,26 @@ function initTable(selector, disPlayHeader) {
 
     if (!selector) {
         selector = "#container";
-    };
+    }
+    ;
 
-	var table = d3.select(selector)
-		.append("table")
-		.attr("class", "table table-bordered"),
+    var table = d3.select(selector)
+            .append("table")
+            .attr("class", "table table-bordered"),
 
-		thead = table.append("thead"),
-		tbody = table.append("tbody");
+        thead = table.append("thead"),
+        tbody = table.append("tbody");
 
-	thead.append("tr")
-		.selectAll("th")
-		.data(displayColumns)
-		.enter()
-		.append("th")
-			.text(function (column) {return column;});
+    thead.append("tr")
+        .selectAll("th")
+        .data(displayColumns)
+        .enter()
+        .append("th")
+        .text(function (column) {
+            return column;
+        });
 
-	return tbody;
+    return tbody;
 }
 
 /**
@@ -94,41 +96,43 @@ function initTable(selector, disPlayHeader) {
  *  }
  *  @param testData
  */
-function fillBody (tbody, preData, testData) {
+function fillBody(tbody, preData, testData) {
     // tbody.remove();
-	var columns = ['uid', 'sid', 'rate', "RealRate"];
-	var rows = tbody.selectAll("tr")
-		.data(function () {
+    var columns = ['uid', 'sid', 'rate', "RealRate"];
+    var rows = tbody.selectAll("tr")
+        .data(function () {
             var users = [];
             for (user in preData) {
-            	var uid_sid_rate = {'uid':user,'data':preData[user]}
+                var uid_sid_rate = {'uid': user, 'data': preData[user]}
                 users.push(uid_sid_rate);
             }
             return users;
         })
-		.enter()
-		.append("tr");
+        .enter()
+        .append("tr");
 
-	var cell = rows.selectAll("td")
-		.data(function (row) {
-			// var tmp = columns.map(function (column) {
-			// 	// TODO: Predict value, real value
+    var cell = rows.selectAll("td")
+        .data(function (row) {
+            // var tmp = columns.map(function (column) {
+            // 	// TODO: Predict value, real value
 
-			// 	return {column: column, value: row['data'][0][column]};
-			// });
-			var tmp = row['data'][0];
-			var data = [];
-			// data.push({'value':row['uid']});
-			// data.push({'value':tmp['sid']});
-			// data.push({'value':tmp['rate']});
-			// data.push({'value':''});
+            // 	return {column: column, value: row['data'][0][column]};
+            // });
+            var tmp = row['data'][0];
+            var data = [];
+            // data.push({'value':row['uid']});
+            // data.push({'value':tmp['sid']});
+            // data.push({'value':tmp['rate']});
+            // data.push({'value':''});
 
-            var uid = row['uid']; var sid = tmp['sid'];
-            var rate = tmp['rate']; var realRate = -1;
+            var uid = row['uid'];
+            var sid = tmp['sid'];
+            var rate = tmp['rate'];
+            var realRate = -1;
 
             var testdata = testData[uid];
             for (var cursor in testdata) {
-                if (sid == cursor[0]){
+                if (sid == cursor[0]) {
                     realRate = cursor[1];
                     break;
                 }
@@ -136,33 +140,35 @@ function fillBody (tbody, preData, testData) {
             if (-1 == realRate) {
                 realRate = "未购买";
             }
-			data.push({'value': uid});
-			data.push({'value': sid});
-			data.push({'value': rate});
+            data.push({'value': uid});
+            data.push({'value': sid});
+            data.push({'value': rate});
 
-			data.push({'value': realRate});
+            data.push({'value': realRate});
 
-			return data;
-		})
-		.enter()
-		.append("td")
-			.text(function (d) {return d.value});
-
-        // d3.selectAll('tr')
-        var tds = $('td:last-child');
-        for (var i = tds.length - 1; i >= 0; i--) {
-            var btn = document.createElement('button');
-            btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
-            btn.setAttribute('data-toggle','modal');
-            btn.setAttribute('data-target', '#myModal');
-            btn.textContent='显示所有';
-            tds[i].appendChild(btn);
-        };
-
-        // $('.showUserDetail').on('click', generateUserData(this));
-        $('.showUserDetail').on('click', function (who){
-            generateUserData(who)
+            return data;
+        })
+        .enter()
+        .append("td")
+        .text(function (d) {
+            return d.value
         });
+
+    // d3.selectAll('tr')
+    var tds = $('td:last-child');
+    for (var i = tds.length - 1; i >= 0; i--) {
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
+        btn.setAttribute('data-toggle', 'modal');
+        btn.setAttribute('data-target', '#myModal');
+        btn.textContent = '显示所有';
+        tds[i].appendChild(btn);
+    }
+
+    // $('.showUserDetail').on('click', generateUserData(this));
+    $('.showUserDetail').on('click', function (who) {
+        generateUserData(who)
+    });
 }
 
 
@@ -171,5 +177,6 @@ function generateUserData(who) {
     var modal_body = $('.modal-body')[0];
     var uid = par.firstChild.textContent;
     var data = PreData[uid];
+    var tbody = initTable("#userDetail");
     console.log(data);
 }
