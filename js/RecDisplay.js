@@ -17,6 +17,10 @@ dsv("data/test.csv")
         });
         console.log("PreData");
 //    	console.log(PreData);
+
+        // tbody = initTable();
+        // console.log("initTable");
+        // fillBody(tbody, PreData, TestData, false, true);
     });
 // 读取测试数据
 dsv("data/cftest.csv")
@@ -48,14 +52,22 @@ dsv("data/cftrain.csv")
             TrainData[row['uid']].push(sid_rate);
         });
         console.log("TrainData");
+
         tbody = initTable();
         console.log("initTable");
-        fillBody(tbody, PreData, TestData);
+        fillBody(tbody, PreData, TestData, true);
     });
 
 
 //	初始化表格，并返回tbody
-function initTable(selector, disPlayHeader) {
+function initTable(selector, disPlayHeader, shouldCleanUserDetail) {
+//    var tbodyExists = $("table","#userDetail") != undefined;
+//    if (tbodyExists) {
+//        $("#userDetail").empty();
+//    }
+    if (shouldCleanUserDetail) {
+        $("#userDetail").empty()
+    }
     if (!disPlayHeader)
         displayColumns = ["用户ID", "商品ID", "预测评分", "实际评分"];
     else
@@ -64,14 +76,13 @@ function initTable(selector, disPlayHeader) {
     if (!selector) {
         selector = "#container";
     }
-    ;
 
     var table = d3.select(selector)
             .append("table")
-            .attr("class", "table table-bordered"),
+            .attr("class", "table table-bordered");
 
-        thead = table.append("thead"),
-        tbody = table.append("tbody");
+    var thead = table.append("thead");
+    var tbody = table.append("tbody");
 
     thead.append("tr")
         .selectAll("th")
@@ -95,16 +106,28 @@ function initTable(selector, disPlayHeader) {
  *  ...
  *  }
  *  @param testData
+ *  @param shouldAddBtn_showAll
  */
-function fillBody(tbody, preData, testData) {
+function fillBody(tbody, preData, testData, shouldAddBtn_showAll) {
     // tbody.remove();
-    var columns = ['uid', 'sid', 'rate', "RealRate"];
+//    if (shouldCleanUserDetail) {$('#userDetail table tbody').empty();}
+//    var columns = ['uid', 'sid', 'rate', "RealRate"];
     var rows = tbody.selectAll("tr")
         .data(function () {
             var users = [];
-            for (user in preData) {
-                var uid_sid_rate = {'uid': user, 'data': preData[user]}
-                users.push(uid_sid_rate);
+            if (shouldAddBtn_showAll) {
+                for (var user in preData) {
+                    var uid_sid_rate = {'uid': +user, 'data': preData[user]};
+                    users.push(uid_sid_rate);
+                }
+            } else {
+                for (var user_ in preData) {
+                    var user_data = preData[user_];
+                    for (var cursor in user_data) {
+                        var uid_sid_rate_ = {'uid': +user_, 'data': user_data[cursor]};
+                        users.push(uid_sid_rate_);
+                    }
+                }
             }
             return users;
         })
@@ -119,6 +142,9 @@ function fillBody(tbody, preData, testData) {
             // 	return {column: column, value: row['data'][0][column]};
             // });
             var tmp = row['data'][0];
+            if (!tmp) {
+                tmp = row['data'];
+            }
             var data = [];
             // data.push({'value':row['uid']});
             // data.push({'value':tmp['sid']});
@@ -127,13 +153,13 @@ function fillBody(tbody, preData, testData) {
 
             var uid = row['uid'];
             var sid = tmp['sid'];
-            var rate = tmp['rate'];
+            var rate = parseFloat(tmp['rate']).toFixed(1);
             var realRate = -1;
 
             var testdata = testData[uid];
             for (var cursor in testdata) {
-                if (sid == cursor[0]) {
-                    realRate = cursor[1];
+                if (sid == testdata[cursor]['sid']) {
+                    realRate = testdata[cursor]['rate'];
                     break;
                 }
             }
@@ -154,29 +180,39 @@ function fillBody(tbody, preData, testData) {
             return d.value
         });
 
-    // d3.selectAll('tr')
-    var tds = $('td:last-child');
-    for (var i = tds.length - 1; i >= 0; i--) {
-        var btn = document.createElement('button');
-        btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
-        btn.setAttribute('data-toggle', 'modal');
-        btn.setAttribute('data-target', '#myModal');
-        btn.textContent = '显示所有';
-        tds[i].appendChild(btn);
-    }
+    if (shouldAddBtn_showAll) {
+        // d3.selectAll('tr')
+        var tds = $('td:last-child');
+        for (var i = tds.length - 1; i >= 0; i--) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
+            btn.setAttribute('data-toggle', 'modal');
+            btn.setAttribute('data-target', '#myModal');
+            btn.textContent = '显示所有';
+            tds[i].appendChild(btn);
+        }
 
-    // $('.showUserDetail').on('click', generateUserData(this));
-    $('.showUserDetail').on('click', function (who) {
-        generateUserData(who)
-    });
+        // $('.showUserDetail').on('click', generateUserData(this));
+        $('.showUserDetail').on('click', function (who) {
+            generateUserData(who);
+        });
+    }
 }
 
 
 function generateUserData(who) {
+    // 获取触发btn的uid
     var par = who.target.parentElement.parentElement;
-    var modal_body = $('.modal-body')[0];
     var uid = par.firstChild.textContent;
-    var data = PreData[uid];
-    var tbody = initTable("#userDetail");
-    console.log(data);
+
+    var data = {};
+    data[uid] = PreData[uid];
+
+    // 设置modal标题
+    $('#myModalLabel').text('用户' + uid + '推荐详情');
+
+    var tbody = initTable("#userDetail", undefined, true);
+    // console.log(TestData);
+    fillBody(tbody, data, TestData, false);
+    // console.log(data);
 }
