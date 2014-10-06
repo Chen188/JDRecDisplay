@@ -52,12 +52,60 @@ dsv("data/cftrain.csv")
             TrainData[row['uid']].push(sid_rate);
         });
         console.log("TrainData");
-
-        tbody = initTable();
-        console.log("initTable");
-        fillBody(tbody, PreData, TestData, true);
+        initFirstTab();
     });
 
+function initFirstTab () {
+    tbody = initTable();
+    console.log("initTable");
+    fillBody(tbody, PreData, TestData, true);
+}
+
+// Nav click Event
+$().ready(function(){
+    $('.nav li a').on("click", function(e) {
+        fillPane(e);
+    });
+});
+
+
+// 填充顶部导航
+function fillPane (e) {
+    var tbody;
+    var disPlayHeader = ["用户ID", "商品ID", "用户评分"];
+    switch (e.target.text) {
+        case "推荐结果":
+            // 填充推荐结果
+            if (isVisible("#pane-recresult-status")) {
+                tbody = initTable('#container', disPlayHeader);
+                fillBody(tbody, PreData, undefined, true, "#container td:last-child");
+                $("#pane-recresult-status").hide();
+            }
+            break;
+        case "训练数据":
+            // 填充训练数据
+            if (isVisible("#pane-traindata-status")) {
+                tbody = initTable('#trainData', disPlayHeader);
+                fillBody(tbody, TrainData, undefined, true, "#trainData td:last-child");
+                $("#pane-traindata-status").hide();
+            }
+            break;
+        case "测试数据":
+            // 填充测试数据
+            if (isVisible("#pane-testdata-status")) {
+                tbody = initTable('#testData', disPlayHeader);
+                fillBody(tbody, TestData, undefined, true, "#testData td:last-child");
+                $("#pane-testdata-status").hide();
+            }
+            break;
+        default: alert('unknown tab name');break;
+    }
+
+}
+
+function isVisible (selector) {
+    return $(selector).css("display") != 'none';
+}
 
 //	初始化表格，并返回tbody
 function initTable(selector, disPlayHeader, shouldCleanUserDetail) {
@@ -66,16 +114,15 @@ function initTable(selector, disPlayHeader, shouldCleanUserDetail) {
 //        $("#userDetail").empty();
 //    }
     if (shouldCleanUserDetail) {
-        $("#userDetail").empty()
+        $("#userDetail").empty();
+    }
+    if (!selector) {
+        selector = "#container";
     }
     if (!disPlayHeader)
         displayColumns = ["用户ID", "商品ID", "预测评分", "实际评分"];
     else
         displayColumns = disPlayHeader;
-
-    if (!selector) {
-        selector = "#container";
-    }
 
     var table = d3.select(selector)
             .append("table")
@@ -107,8 +154,9 @@ function initTable(selector, disPlayHeader, shouldCleanUserDetail) {
  *  }
  *  @param testData
  *  @param shouldAddBtn_showAll
+ * @param btn_selector
  */
-function fillBody(tbody, preData, testData, shouldAddBtn_showAll) {
+function fillBody(tbody, preData, testData, shouldAddBtn_showAll, btn_selector) {
     // tbody.remove();
 //    if (shouldCleanUserDetail) {$('#userDetail table tbody').empty();}
 //    var columns = ['uid', 'sid', 'rate', "RealRate"];
@@ -156,22 +204,24 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll) {
             var rate = parseFloat(tmp['rate']).toFixed(1);
             var realRate = -1;
 
-            var testdata = testData[uid];
-            for (var cursor in testdata) {
-                if (sid == testdata[cursor]['sid']) {
-                    realRate = testdata[cursor]['rate'];
-                    break;
-                }
-            }
-            if (-1 == realRate) {
-                realRate = "未购买";
-            }
             data.push({'value': uid});
             data.push({'value': sid});
             data.push({'value': rate});
 
-            data.push({'value': realRate});
-
+            // 如果testData未定义，则不是 结果tab ，不求取实际评分.
+            if (testData) {
+                var testdata = testData[uid];
+                for (var cursor in testdata) {
+                    if (sid == testdata[cursor]['sid']) {
+                        realRate = testdata[cursor]['rate'];
+                        break;
+                    }
+                }
+                if (-1 == realRate) {
+                    realRate = "未购买";
+                }
+                data.push({'value': realRate});
+            }
             return data;
         })
         .enter()
@@ -182,7 +232,11 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll) {
 
     if (shouldAddBtn_showAll) {
         // d3.selectAll('tr')
-        var tds = $('td:last-child');
+        var _btn_selector = "td:last-child";
+        if (btn_selector) {
+            _btn_selector = btn_selector;
+        }
+        var tds = $(_btn_selector);
         for (var i = tds.length - 1; i >= 0; i--) {
             var btn = document.createElement('button');
             btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
@@ -194,25 +248,31 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll) {
 
         // $('.showUserDetail').on('click', generateUserData(this));
         $('.showUserDetail').on('click', function (who) {
-            generateUserData(who);
+            generateUserData(who, preData, _btn_selector);
         });
     }
 }
 
 
-function generateUserData(who) {
+function generateUserData(who, preData) {
     // 获取触发btn的uid
     var par = who.target.parentElement.parentElement;
     var uid = par.firstChild.textContent;
 
     var data = {};
-    data[uid] = PreData[uid];
+    data[uid] = preData[uid];
 
     // 设置modal标题
-    $('#myModalLabel').text('用户' + uid + '推荐详情');
+    $('#myModalLabel').text('用户' + uid + '详情');
 
-    var tbody = initTable("#userDetail", undefined, true);
     // console.log(TestData);
-    fillBody(tbody, data, TestData, false);
+    // RecResult tab
+    if (preData == PreData) {
+        var tbody = initTable("#userDetail", undefined, true);
+        fillBody(tbody, data, TestData, false);
+    }else{ // other tab
+        var tbody = initTable("#userDetail", ["用户ID", "商品ID", "用户评分"], true);
+        fillBody(tbody, data, undefined, false);
+    }
     // console.log(data);
 }

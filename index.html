@@ -21,12 +21,30 @@
   </div>
 </header>
 <div id="main">
+    <!-- Nav tabs -->
     <ul class="nav nav-tabs" role="tablist">
-        <li class="active"><a href="" role="tab" data-toggle="tab">推荐<br/>结果</a></li>
-        <li><a href="" role="tab" data-toggle="tab">训练<br/>数据</a></li>
-        <li><a href="" role="tab" data-toggle="tab">测试<br/>数据</a></li>
+        <li class="active"><a href="#recResult" role="tab" data-toggle="tab">推荐<br/>结果</a></li>
+        <li><a href="#trainData" role="tab" data-toggle="tab">训练<br/>数据</a></li>
+        <li><a href="#testData" role="tab" data-toggle="tab">测试<br/>数据</a></li>
     </ul>
-    <div id="container"></div>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <!-- rec Result -->
+        <div class="tab-pane active" id="recResult">
+            <div id="pane-recresult-status" style="display:none;">loading...</div>
+            <div id="container"></div>
+        </div>
+        <!-- train data -->
+        <div class="tab-pane" id="trainData">
+            <div id="pane-traindata-status">loading...</div>
+        </div>
+        <!-- test data -->
+        <div class="tab-pane" id="testData">
+            <div id="pane-testdata-status">loading...</div>
+        </div>
+    </div>
+    
 </div>
 
 <div class="modal fade in" id="myModal" aria-labelledby="myModalLabel" tabindex="-1" role="dialog" aria-hidden="true">
@@ -48,9 +66,7 @@
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
-        <!-- /.modal-content -->
     </div>
-    <!-- /.modal -->
 </div>
 
 <div class="page-header">
