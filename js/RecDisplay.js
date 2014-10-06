@@ -17,10 +17,6 @@ dsv("data/test.csv")
         });
         console.log("PreData");
 //    	console.log(PreData);
-
-        // tbody = initTable();
-        // console.log("initTable");
-        // fillBody(tbody, PreData, TestData, false, true);
     });
 // 读取测试数据
 dsv("data/cftest.csv")
@@ -182,6 +178,8 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll, btn_selector) 
         .enter()
         .append("tr");
 
+    var badgeArray = [];
+
     var cell = rows.selectAll("td")
         .data(function (row) {
             // var tmp = columns.map(function (column) {
@@ -189,10 +187,16 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll, btn_selector) 
 
             // 	return {column: column, value: row['data'][0][column]};
             // });
+            var badge = row['data'].length;
             var tmp = row['data'][0];
             if (!tmp) {
                 tmp = row['data'];
+                badge = 1;
             }
+
+            // 添加徽章(个数)
+            badgeArray.push(badge);
+
             var data = [];
             // data.push({'value':row['uid']});
             // data.push({'value':tmp['sid']});
@@ -237,12 +241,19 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll, btn_selector) 
             _btn_selector = btn_selector;
         }
         var tds = $(_btn_selector);
-        for (var i = tds.length - 1; i >= 0; i--) {
+        for (var i = 0; i < tds.length; i++) {
             var btn = document.createElement('button');
-            btn.className = 'btn btn-xs btn-info btn-default showUserDetail';
+            btn.className = 'btn btn-xs btn-link showUserDetail';
             btn.setAttribute('data-toggle', 'modal');
             btn.setAttribute('data-target', '#myModal');
             btn.textContent = '显示所有';
+
+            var badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.textContent = badgeArray[i].toString();
+
+            btn.appendChild(badge);
+
             tds[i].appendChild(btn);
         }
 
