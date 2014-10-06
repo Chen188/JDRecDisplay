@@ -249,21 +249,23 @@ function fillBody(tbody, preData, testData, shouldAddBtn_showAll, btn_selector) 
             btn.textContent = '显示所有';
 
             var badge = document.createElement('span');
-            badge.className = 'badge';
+            badge.className = 'label label-default';
             badge.textContent = badgeArray[i].toString();
 
-            btn.appendChild(badge);
+            // btn.appendChild(badge);
 
+            tds[i].appendChild(badge);
             tds[i].appendChild(btn);
         }
 
         // $('.showUserDetail').on('click', generateUserData(this));
-        $('.showUserDetail').on('click', function (who) {
+        $('.showUserDetail').unbind('click');
+        $('.showUserDetail').bind('click', function (who) {
             generateUserData(who, preData, _btn_selector);
         });
+
     }
 }
-
 
 function generateUserData(who, preData) {
     // 获取触发btn的uid
@@ -278,12 +280,20 @@ function generateUserData(who, preData) {
 
     // console.log(TestData);
     // RecResult tab
-    if (preData == PreData) {
-        var tbody = initTable("#userDetail", undefined, true);
-        fillBody(tbody, data, TestData, false);
-    }else{ // other tab
-        var tbody = initTable("#userDetail", ["用户ID", "商品ID", "用户评分"], true);
-        fillBody(tbody, data, undefined, false);
+
+    var tbody;
+    // 获取active tab
+    var activeTab = $('.nav-tabs li[class="active"] a').text();
+    switch (activeTab) {
+        case '推荐结果':
+            tbody = initTable("#userDetail", undefined, true);
+            fillBody(tbody, data, TestData, false);
+            break;
+        default :
+            tbody = initTable("#userDetail", ["用户ID", "商品ID", "用户评分"], true);
+            fillBody(tbody, data, undefined, false);
+            break;
     }
+
     // console.log(data);
 }
