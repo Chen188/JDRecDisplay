@@ -1,85 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head lang="en">
-  <meta charset="UTF-8">
-  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="css/RecDisplay.css">
-  <script src="js/d3.js"></script>
-  <script type="text/javascript" src="js/jquery-2.1.1.js"></script>
-  <script type="text/javascript" src="js/bootstrap.js"></script>
-  <script src="js/RecDisplay.js"></script>
-  <title>推荐结果展示</title>
+    <meta charset="UTF-8">
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/RecDisplay.css">
+    <script src="js/d3.js"></script>
+    <script type="text/javascript" src="js/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script src="js/RecDisplay.js"></script>
+
+    <title>推荐结果展示</title>
 </head>
 <body style="font-family:Microsoft YaHei UI">
-  <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner"
-  style="border-bottom-color: #e7e7e7;">
-  <div class="container">
-    <div class="navbar-header">
-      <a href="#" class="navbar-brand">推荐展示系统</a>
+<header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner"
+        style="border-bottom-color: #e7e7e7;">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="#" class="navbar-brand">推荐展示系统</a>
+        </div>
     </div>
-  </div>
 </header>
 <div id="main">
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="active"><a href="#recResult" role="tab" data-toggle="tab">推荐<br/>结果</a></li>
-    <li><a href="#trainData" role="tab" data-toggle="tab">训练<br/>数据</a></li>
-    <li><a href="#testData" role="tab" data-toggle="tab">测试<br/>数据</a></li>
-  </ul>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="active"><a href="#recResult" role="tab" data-toggle="tab">推荐<br/>结果</a></li>
+        <li><a href="#trainData" role="tab" data-toggle="tab">训练<br/>数据</a></li>
+        <li><a href="#testData" role="tab" data-toggle="tab">测试<br/>数据</a></li>
+    </ul>
 
-  <!-- Tab panes -->
-  <div class="tab-content">
-    <!-- rec Result -->
-    <div class="tab-pane active" id="recResult">
-      <div id="pane-recresult-status" style="display:none;">loading...</div>
-      <div id="container"></div>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <!-- rec Result -->
+        <div class="tab-pane active" id="recResult">
+            <div id="pane-recresult-status" style="display:none;">loading...</div>
+            <div id="container"></div>
+        </div>
+        <!-- train data -->
+        <div class="tab-pane" id="trainData">
+            <div id="pane-traindata-status">loading...</div>
+        </div>
+        <!-- test data -->
+        <div class="tab-pane" id="testData">
+            <div id="pane-testdata-status">loading...</div>
+        </div>
     </div>
-    <!-- train data -->
-    <div class="tab-pane" id="trainData">
-      <div id="pane-traindata-status">loading...</div>
-    </div>
-    <!-- test data -->
-    <div class="tab-pane" id="testData">
-      <div id="pane-testdata-status">loading...</div>
-    </div>
-  </div>
+    <div id="pager"></div>
+    <!--<div id="info"></div>-->
+
+    <script type="text/javascript">
+        <!--
+        var pager = new PagerView('pager');
+        pager.onclick = function(index){
+            fillPane1();
+//            document.getElementById('info').innerHTML = '现在翻到第' + index + '页';
+        };
+        pager.render();
+        //-->
+    </script>
 </div>
 
 <div class="modal fade in" id="myModal" aria-labelledby="myModalLabel" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close"
-        data-dismiss="modal" aria-hidden="true">
-        &times;
-      </button>
-      <h4 class="modal-title" id="myModalLabel">
-        用户推荐详情
-      </h4>
-    </div>
-    <div id="userDetail" class="modal-body">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    用户推荐详情
+                </h4>
+            </div>
+            <div id="userDetail" class="modal-body">
 
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
     </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-    </div>
-  </div>
-</div>
 </div>
 <footer class="site-footer" role="contentinfo">
-  <div class="container">
-    <p>
-      <!-- <a class="twitter-share-button" href="#" data-size="large">个性化推荐系统-数据展示系统</a> -->
-    </p>
-    <p>
-      注:<br/>
-      最多为用户生成50个推荐项目,点击<kbd>显示所有</kbd>查看为该用户生成的所有推荐.<br/>
-      推荐结果页:显示为用户生成的推荐结果,并可显示用户的实际评分,当用户尚未购买时显示为<i>"未购买"</i>.<br>
-      训练数据页:展示实验所用的训练数据. <br>
-      测试数据页:展示实验所用的测试数据. <br>
-    </p>
-  </div>
+    <div class="container">
+        <p>
+            <!-- <a class="twitter-share-button" href="#" data-size="large">个性化推荐系统-数据展示系统</a> -->
+        </p>
+        <p>
+            注:<br/>
+            最多为用户生成50个推荐项目,点击<kbd>显示所有</kbd>查看为该用户生成的所有推荐.<br/>
+            推荐结果页:显示为用户生成的推荐结果,并可显示用户的实际评分,当用户尚未购买时显示为<i>"未购买"</i>.<br>
+            训练数据页:展示实验所用的训练数据. <br>
+            测试数据页:展示实验所用的测试数据. <br>
+        </p>
+    </div>
 </footer>
 </body>
 </html>

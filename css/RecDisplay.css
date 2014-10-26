@@ -27,6 +27,7 @@
     border-bottom: none;
 }
 .label{
+    width: 25px;
 	float: right;
     margin-top: 3px;
     padding: 3px;

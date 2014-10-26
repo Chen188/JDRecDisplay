@@ -1,9 +1,193 @@
 PreData = {};
 TrainData = {};
 TestData = {};
+predatatest={};
+traindatatest={};
+testdatatest={};
+
+predatalength=0;
+traindatalength=0;
+testdatalength=0;
+
+pageIndex=0;
+pageCount=0;
+rowCount=10;
+
+panel=0;
+
+/**
+ * @author ideawu@163.com
+ * @class
+ * 分页控件, 使用原生的JavaScript代码编写. 重写onclick方法, 获取翻页事件,
+ * 可用来向服务器端发起AJAX请求.
+ *
+ * @param {String} id: HTML节点的id属性值, 控件将显示在该节点中.
+ * @returns {PagerView}: 返回分页控件实例.
+ *
+ * @example
+ * ### HTML:
+ * &lt;div id="pager"&gt;&lt;/div&gt;
+ *
+ * ### JavaScript:
+ * var pager = new PagerView('pager');
+ * pager.index = 3; // 当前是第3页
+ * pager.size = 16; // 每页显示16条记录
+ * pager.itemCount = 100; // 一共有100条记录
+ *
+ * pager.onclick = function(index){
+ *	alert('click on page: ' + index);
+ *	// display data...
+ * };
+ *
+ * pager.render();
+ *
+ */
+var PagerView = function(id){
+    var self = this;
+    this.id = id;
+
+    this._pageCount = 0; // 总页数
+    this._start = 1; // 起始页码
+    this._end = 1; // 结束页码
+
+    /**
+     * 当前控件所处的HTML节点引用.
+     * @type DOMElement
+     */
+    this.container = null;
+    /**
+     * 当前页码, 从1开始
+     * @type int
+     */
+    this.index = 1;
+    /**
+     * 每页显示记录数
+     * @type int
+     */
+    this.size = 1;
+    /**
+     * 显示的分页按钮数量
+     * @type int
+     */
+    this.maxButtons = 9;
+    /**
+     * 记录总数
+     * @type int
+     */
+    this.itemCount = 0;
+
+    /**
+     * 控件使用者重写本方法, 获取翻页事件, 可用来向服务器端发起AJAX请求.
+     * 如果要取消本次翻页事件, 重写回调函数返回 false.
+     * @param {int} index: 被点击的页码.
+     * @returns {Boolean} 返回false表示取消本次翻页事件.
+     * @event
+     */
+    this.onclick = function(index){
+        return true;
+    };
+
+    /**
+     * 内部方法.
+     */
+    this._onclick = function(index){
+        var old = self.index;
+
+        self.index = index;
+        if(self.onclick(index) !== false){
+            self.render();
+        }else{
+            self.index = old;
+        }
+    };
+
+    /**
+     * 在显示之前计算各种页码变量的值.
+     */
+    this._calculate = function(){
+        self._pageCount = parseInt(Math.ceil(self.itemCount / self.size));
+        self.index = parseInt(self.index);
+        if(self.index > self._pageCount){
+            self.index = self._pageCount;
+        }
+        if(self.index < 1){
+            self.index = 1;
+        }
+
+        self._start = Math.max(1, self.index - parseInt(self.maxButtons/2));
+        self._end = Math.min(self._pageCount, self._start + self.maxButtons - 1);
+        self._start = Math.max(1, self._end - self.maxButtons + 1);
+    };
+
+    /**
+     * 渲染控件.
+     */
+    this.render = function(){
+        var div = document.getElementById(self.id);
+        div.view = self;
+        self.container = div;
+
+        self._calculate();
+
+        var str = '';
+        str += '<div class="PagerView">\n';
+        if(self._pageCount > 1){
+            if(self.index != 1){
+                str += '<a href="javascript://1"><span>|&lt;</span></a>';
+                str += '<a href="javascript://' + (self.index-1) + '"><span>&lt;&lt;</span></a>';
+            }else{
+                str += '<span>|&lt;</span>';
+                str += '<span>&lt;&lt;</span>';
+            }
+        }
+        for(var i=self._start; i<=self._end; i++){
+            if(i == this.index){
+                str += '<span class="on">' + i + "</span>";
+            }else{
+                str += '<a href="javascript://' + i + '"><span>' + i + '</span></a>';
+            }
+        }
+        if(self._pageCount > 1){
+            if(self.index != self._pageCount){
+                str += '<a href="javascript://' + (self.index+1) + '"><span>&gt;&gt;</span></a>';
+                str += '<a href="javascript://' + self._pageCount + '"><span>&gt;|</span></a>';
+            }else{
+                str += '<span>&gt;&gt;</span>';
+                str += '<span>&gt;|</span>';
+            }
+        }
+        str += ' 一共' + self._pageCount + '页, ' + self.itemCount + '条记录 ';
+        str += '</div><!-- /.pagerView -->\n';
+
+        self.container.innerHTML = str;
+
+        var a_list = self.container.getElementsByTagName('a');
+        for(var i=0; i<a_list.length; i++){
+            a_list[i].onclick = function(){
+                var index = this.getAttribute('href');
+                if(index != undefined && index != ''){
+                    index = parseInt(index.replace('javascript://', ''));
+                    self._onclick(index)
+                }
+                return false;
+            };
+        }
+    };
+}
+
+function min(t1,t2){
+    if(t1>=t2)
+    {
+        return t2;
+    }
+    else
+    {
+        return t1;
+    }
+}
 
 var dsv = d3.dsv("|", "text/plain");
-dsv("data/test.csv")
+dsv("data/cfResult.csv")
     .row(function (d) {
         return {uid: +d.uid, rate: +d.rate, sid: +d.sid};
     })
@@ -12,10 +196,12 @@ dsv("data/test.csv")
             var sid_rate = {sid: row.sid, rate: row.rate};
             if (!PreData[row['uid']]) {
                 PreData[row['uid']] = [];
+                predatalength++;
             }
             PreData[row['uid']].push(sid_rate);
         });
         console.log("PreData");
+        initFirstTab();
 //    	console.log(PreData);
     });
 // 读取测试数据
@@ -28,6 +214,7 @@ dsv("data/cftest.csv")
             var sid_rate = {sid: row.sid, rate: row.rate};
             if (!TestData[row['uid']]) {
                 TestData[row['uid']] = [];
+                testdatalength++;
             }
             TestData[row['uid']].push(sid_rate);
         });
@@ -44,17 +231,40 @@ dsv("data/cftrain.csv")
             var sid_rate = {sid: row.sid, rate: row.rate};
             if (!TrainData[row['uid']]) {
                 TrainData[row['uid']] = [];
+                traindatalength++;
             }
             TrainData[row['uid']].push(sid_rate);
         });
         console.log("TrainData");
-        initFirstTab();
     });
 
 function initFirstTab () {
     tbody = initTable();
+    panel=1;
+    predatatest=undefined;
+    predatatest={};
+    pager.itemCount=predatalength;
+    pager.index=1;
+    pager.size=rowCount;
+    var i=0;
+    for(var item in PreData)
+    {
+        if(i>=(pager.index-1)*pager.size&&i<min((pager.index)*pager.size,predatalength)) {
+            if (!predatatest[item]) {
+                predatatest[item] = [];
+            }
+            for (var item2 in PreData[item])
+            {
+                var sid_rate = {sid: PreData[item][item2].sid, rate: PreData[item][item2].rate};
+                predatatest[item].push(sid_rate);
+            }
+            console.log(item)
+        }
+        i++;
+    }
+    pager.render();
     console.log("initTable");
-    fillBody(tbody, PreData, TestData, true);
+    fillBody(tbody, predatatest, TestData, true);
 }
 
 // Nav click Event
@@ -72,32 +282,173 @@ function fillPane (e) {
     switch (e.target.text) {
         case "推荐结果":
             // 填充推荐结果
-            if (isVisible("#pane-recresult-status")) {
-                tbody = initTable('#container', disPlayHeader);
-                fillBody(tbody, PreData, undefined, true, "#container td:last-child");
-                $("#pane-recresult-status").hide();
+            panel=1;
+            pager.itemCount=predatalength;
+            pager.index=1;
+            pager.size=rowCount;
+            pager.render();
+            var i=0;
+            predatatest=undefined;
+            predatatest={};
+            for(var item in PreData)
+            {
+                if(i>=(pager.index-1)*pager.size&&i<min((pager.index)*pager.size,predatalength)) {
+                    if (!predatatest[item]) {
+                        predatatest[item] = [];
+                    }
+                    for (var item2 in PreData[item])
+                    {
+                        var sid_rate = {sid: PreData[item][item2].sid, rate: PreData[item][item2].rate};
+                        predatatest[item].push(sid_rate);
+                    }
+                    console.log(item)
+                }
+                i++;
             }
+            document.getElementById("container").innerHTML="";
+            tbody = initTable('#container', disPlayHeader);
+            fillBody(tbody, predatatest, undefined, true, "#container td:last-child");
             break;
         case "训练数据":
             // 填充训练数据
-            if (isVisible("#pane-traindata-status")) {
-                tbody = initTable('#trainData', disPlayHeader);
-                fillBody(tbody, TrainData, undefined, true, "#trainData td:last-child");
-                $("#pane-traindata-status").hide();
+            panel=2;
+            pager.itemCount=traindatalength;
+            pager.index=1;
+            pager.size=rowCount;
+            pager.render();
+            var i=0;
+           traindatatest=undefined;
+            traindatatest={};
+            for(var item in TrainData)
+            {
+                if(i>=(pager.index-1)*pager.size&&i<min((pager.index)*pager.size,traindatalength)) {
+                    if (!traindatatest[item]) {
+                        traindatatest[item] = [];
+                    }
+                    for (var item2 in TrainData[item])
+                    {
+                        var sid_rate = {sid: TrainData[item][item2].sid, rate: TrainData[item][item2].rate};
+                        traindatatest[item].push(sid_rate);
+                    }
+                    console.log(item)
+                }
+                i++;
             }
+            document.getElementById("trainData").innerHTML="";
+            tbody = initTable('#trainData', disPlayHeader);
+            fillBody(tbody, traindatatest, undefined, true, "#trainData td:last-child");
             break;
         case "测试数据":
             // 填充测试数据
-            if (isVisible("#pane-testdata-status")) {
-                tbody = initTable('#testData', disPlayHeader);
-                fillBody(tbody, TestData, undefined, true, "#testData td:last-child");
-                $("#pane-testdata-status").hide();
+            panel=3;
+            pager.itemCount=testdatalength;
+            pager.index=1;
+            pager.size=rowCount
+            pager.render();
+            testdatatest=undefined;
+            testdatatest=[];
+            var i=0;
+            for(var item in TestData)
+            {
+                if(i>=(pager.index-1)*pager.size&&i<min((pager.index)*pager.size,testdatalength)) {
+                    if (!testdatatest[item]) {
+                        testdatatest[item] = [];
+                    }
+                    for (var item2 in TestData[item])
+                    {
+                        var sid_rate = {sid: TestData[item][item2].sid, rate: TestData[item][item2].rate};
+                        testdatatest[item].push(sid_rate);
+                    }
+                }
+                i++;
             }
+            document.getElementById("testData").innerHTML="";
+            tbody = initTable('#testData', disPlayHeader);
+            fillBody(tbody, testdatatest, undefined, true, "#testData td:last-child");
             break;
         default: alert('unknown tab name');break;
     }
 
 }
+
+function fillPane1 () {
+    var tbody;
+    var disPlayHeader = ["用户ID", "商品ID", "用户评分"];
+    switch (panel) {
+        case 1:
+            // 填充推荐结果
+            pager.render();
+            var i = 0;
+            predatatest = undefined;
+            predatatest = [];
+            for (var item in PreData) {
+                if (i >= (pager.index - 1) * pager.size && i < min
+                ((pager.index) * pager.size, predatalength)) {
+                    if (!predatatest[item]) {
+                        predatatest[item] = [];
+                    }
+                    for (var item2 in PreData[item]) {
+                        var sid_rate = {sid: PreData[item][item2].sid, rate: PreData
+                            [item][item2].rate};
+                        predatatest[item].push(sid_rate);
+                    }
+                }
+                i++;
+            }
+            document.getElementById('container').innerHTML = "";
+            tbody = initTable('#container', disPlayHeader);
+            fillBody(tbody, predatatest, undefined, true, "#container td:last-child");
+            break;
+        case 2:
+            // 填充训练数据
+            pager.render();
+            var i = 0;
+            traindatatest = undefined;
+            traindatatest = [];
+            for (var item in TrainData) {
+                if (i >= (pager.index - 1) * pager.size && i < min((pager.index) * pager.size, traindatalength)) {
+                    if (!traindatatest[item]) {
+                        traindatatest[item] = [];
+                    }
+                    for (var item2 in TrainData[item]) {
+                        var sid_rate = {sid: TrainData[item][item2].sid, rate: TrainData[item][item2].rate};
+                        traindatatest[item].push(sid_rate);
+                    }
+                }
+                i++;
+            }
+            document.getElementById('trainData').innerHTML = "";
+            tbody = initTable('#trainData', disPlayHeader);
+            fillBody(tbody, traindatatest, undefined, true, "#trainData td:last-child");
+            break;
+        case 3:
+            // 填充测试数据
+            pager.render();
+            var i = 0;
+            testdatatest = undefined;
+            testdatatest = [];
+            for (var item in TestData) {
+                if (i >= (pager.index - 1) * pager.size && i < min((pager.index) * pager.size, testdatalength)) {
+                    if (!testdatatest[item]) {
+                        testdatatest[item] = [];
+                    }
+                    for (var item2 in TestData[item]) {
+                        var sid_rate = {sid: TestData[item][item2].sid, rate: TestData[item][item2].rate};
+                        testdatatest[item].push(sid_rate);
+                    }
+                }
+                i++;
+            }
+            document.getElementById('testData').innerHTML = "";
+            tbody = initTable('#testData', disPlayHeader);
+            fillBody(tbody, testdatatest, undefined, true, "#testData td:last-child");
+            break;
+        default:
+            alert('unknown tab name');
+            break;
+    }
+}
+
 
 function isVisible (selector) {
     return $(selector).css("display") != 'none';
@@ -121,8 +472,8 @@ function initTable(selector, disPlayHeader, shouldCleanUserDetail) {
         displayColumns = disPlayHeader;
 
     var table = d3.select(selector)
-            .append("table")
-            .attr("class", "table table-bordered");
+        .append("table")
+        .attr("class", "table table-bordered");
 
     var thead = table.append("thead");
     var tbody = table.append("tbody");
